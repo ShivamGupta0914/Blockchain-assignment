@@ -30,24 +30,23 @@ contract A {
         );
         initTotal -= _paramToSubtract;
         sub = initTotal;
-        emit SubEvent(initTotal, _paramToSubtract)
+        emit SubEvent(initTotal, _paramToSubtract);
     }
 
-    function multiply(uint256 _paramToMultiply) external {
-        (bool fetched, ) = BcontractAddress.delegatecall(
-            abi.encodeWithSignature("multiply(uint256)", _paramToMultiply)
-        );
-        require(fetched, "failed to multiply");
+    fallback() external payable{
+        BcontractAddress.delegatecall(abi.encodeWithSignature("multiply(uint256)", 23));
     }
+
 }
 
 contract B {
-    uint256 private add;
-    uint256 private sub;
-    uint256 private initTotal;
+    uint256 public add;
+    uint256 public sub;
+    uint256 public initTotal;
     event MultiplyEvent(uint256 a, uint256 b, uint256 c);
 
-    function multiply(uint256 _paramToMultiply) external {
+    function multiply(uint256 _paramToMultiply) external payable{
+
         require(
             (add -sub) * _paramToMultiply <= type(uint256).max,
             "Overflow happened"
