@@ -5,10 +5,15 @@ contract A {
     uint256 public add;
     uint256 public sub;
     uint256 public initTotal;
+    address BcontractAddress;
     event AddEvent(uint256 a, uint256 b);
     event SubEvent(uint256 a, uint256 b);
 
-    function addition(uint256 _paramToAdd) external payable {
+    constructor(address _BcontractAddress) {
+        BcontractAddress = _BcontractAddress;
+    }
+
+    function addition(uint256 _paramToAdd) external {
         require(
             initTotal + _paramToAdd <= type(uint256).max,
             "add value is very high"
@@ -18,7 +23,7 @@ contract A {
         emit AddEvent(initTotal, _paramToAdd);
     }
 
-    function subtract(uint256 _paramToSubtract) external payable {
+    function subtract(uint256 _paramToSubtract) external {
         require(
             initTotal - _paramToSubtract >= 0,
             "subtract value is very high"
@@ -27,34 +32,27 @@ contract A {
         sub = initTotal;
         emit SubEvent(initTotal, _paramToSubtract);
     }
+
+    function multiply(uint256 _paramToMultiply) external {
+        (bool fetched, ) = BcontractAddress.delegatecall(
+            abi.encodeWithSignature("multiply(uint256)", _paramToMultiply)
+        );
+        require(fetched, "failed to multiply");
+    }
 }
 
 contract B {
-    uint256 public add;
-    uint256 public sub;
-    uint256 public initTotal = 1;
-    uint256 public mul;
-    address AcontractAddress;
+    uint256 private add;
+    uint256 private sub;
+    uint256 private initTotal;
     event MultiplyEvent(uint256 a, uint256 b, uint256 c);
 
-    constructor(address _AcontractAddress) {
-        AcontractAddress = _AcontractAddress;
-    }
-
-    function multiply(uint256 _paramToMultiply) external payable {
-        (bool statusFindAdd, ) = AcontractAddress.delegatecall(
-            abi.encodeWithSignature("addition(uint256)", _paramToMultiply)
-        );
-        require(statusFindAdd, "can not detach Add variable");
-        (bool statusFindSub, ) = AcontractAddress.delegatecall(
-            abi.encodeWithSignature("subtract(uint256)", _paramToMultiply)
-        );
-        require(statusFindSub, "can not detach Sub variable");
+    function multiply(uint256 _paramToMultiply) external {
         require(
             add * sub * _paramToMultiply <= type(uint256).max,
             "Overflow happened"
         );
-        mul = add * sub * _paramToMultiply;
+        initTotal = (add - sub) * _paramToMultiply;
         emit MultiplyEvent(add, sub, _paramToMultiply);
     }
 }
