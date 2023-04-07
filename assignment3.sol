@@ -30,7 +30,7 @@ contract A {
         );
         initTotal -= _paramToSubtract;
         sub = initTotal;
-        emit SubEvent(initTotal, _paramToSubtract);
+        emit SubEvent(initTotal, _paramToSubtract)
     }
 
     function multiply(uint256 _paramToMultiply) external {
