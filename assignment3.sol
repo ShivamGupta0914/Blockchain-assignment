@@ -49,7 +49,7 @@ contract B {
 
     function multiply(uint256 _paramToMultiply) external {
         require(
-            add * sub * _paramToMultiply <= type(uint256).max,
+            (add -sub) * _paramToMultiply <= type(uint256).max,
             "Overflow happened"
         );
         initTotal = (add - sub) * _paramToMultiply;
