@@ -1,20 +1,13 @@
 require("@nomicfoundation/hardhat-toolbox");
-
+require('@openzeppelin/hardhat-upgrades');
+require('dotenv').config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.19",
-};
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
+  networks:{
+    sepolia :{
+      url : `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts : [process.env.SEPOLIA_PRIVATE_KEY],
+    }
   }
-});
-
-task("balance", "Prints an account's balance").setAction(async () => {});
-subtask("print", "Prints a message")
-  .addParam("message", "The message to print")
-  .setAction(async (taskArgs) => {
-    console.log(taskArgs.message);
-  });
+};
