@@ -4,7 +4,7 @@ async function main() {
   const aContract = await ethers.getContractFactory("A");
   console.log("First contract is deploying......");
   const A = await upgrades.deployProxy(aContract, [2], {
-    initializer : "setValue",
+    initializer : "initialize",
   });
 
   await A.deployed();
