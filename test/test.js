@@ -25,6 +25,7 @@ describe("Token contract", function () {
         expect(await hardhatToken.balanceOf(addr1.address)).to.equal(100);
         expect(await hardhatToken.transfer(addr1.address, 100)).to.emit(hardhatToken, "Transfer").withArgs(owner.address, addr1.address, 100);
         await expect(hardhatToken.connect(addr1).transfer(addr2.address, 10000)).to.be.revertedWith("Insufficient amount");
+        await expect(hardhatToken.connect(addr1).transfer(zero_address, 10000)).to.be.revertedWith("can not send tokens to zero address");
     });
 
     it("should approve someone", async function () {
@@ -45,6 +46,10 @@ describe("Token contract", function () {
         await expect(hardhatToken.connect(addr1).transferFrom(owner.address, owner.address, 100)).to.be.revertedWith("same from and to");
         await expect(hardhatToken.connect(addr1).transferFrom(owner.address, addr1.address, BigInt(Math.pow(10, 24)))).to.be.revertedWith("from does not have sufficient balance");
         await expect(hardhatToken.connect(addr1).transferFrom(owner.address, addr1.address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("Not Authorized Or Insufficient Balance");
+        await expect(hardhatToken.connect(addr1).transferFrom(zero_address, addr1.address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("can not transfer or send to zero address");
+        await expect(hardhatToken.connect(addr1).transferFrom(owner.address, zero_address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("can not transfer or send to zero address");
+
+
     });
 
     it("should mint token correctly", async function () {
@@ -65,6 +70,19 @@ describe("Token contract", function () {
         expect(await hardhatToken.burn(addr1.address, 100)).to.emit(hardhatToken, "Transfer").withArgs(addr1.address, 0, 100);
         await expect(hardhatToken.connect(addr1).burn(addr1.address, 100)).to.be.revertedWith("not authorized to burn");
         await expect(hardhatToken.burn(addr1.address, 10000)).to.be.revertedWith("Not enough balance");
+    });
+
+    it("burnFrom should work correctly", async function () {
+        const { hardhatToken, owner, addr1 } = await loadFixture(deployTokenFixture);
+        await hardhatToken.approve(addr1.address, 1000);
+        await hardhatToken.connect(addr1).burnFrom(owner.address, 100);
+        const expectedTotalSupply = BigInt(Math.pow(10, 21)) - BigInt(100);
+        expect(BigInt(await hardhatToken.totalSupply())).to.equal(expectedTotalSupply);
+        expect(await hardhatToken.connect(addr1).burnFrom(owner.address, 100)).to.emit(hardhatToken, "Transfer").withArgs(owner.address, 0, 100);
+        await expect(hardhatToken.connect(addr1).burnFrom(owner.address, 1000)).to.be.revertedWith("you are not approved or Low Approval Balance");
+        await expect(hardhatToken.connect(addr1).burnFrom(zero_address, 10)).to.be.revertedWith("can not burn from zero address");
+        await hardhatToken.approve(addr1.address, BigInt(Math.pow(10,24)));
+        await expect(hardhatToken.connect(addr1).burnFrom(owner.address, BigInt(Math.pow(10,24)))).to.be.revertedWith("Insufficient funds in from account");
     });
 
     it("should return total supply of token", async function () {

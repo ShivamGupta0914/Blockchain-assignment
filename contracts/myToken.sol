@@ -18,6 +18,7 @@ contract TokenImplement is IERC20 {
     }
 
     function transfer(address to, uint256 amount) external returns (bool) {
+        require(to != address(0), "can not send tokens to zero address");
         require(tokenBalance[msg.sender] >= amount, "Insufficient amount");
         tokenBalance[msg.sender] -= amount;
         tokenBalance[to] += amount;
@@ -44,6 +45,16 @@ contract TokenImplement is IERC20 {
         emit Transfer(account, address(0), amount);
     }
 
+    function burnFrom(address from, uint256 amount) external {
+        require(approvalBalance[_owner][msg.sender] >= amount, "you are not approved or Low Approval Balance");
+        require(from != address(0), "can not burn from zero address");
+        require(tokenBalance[from] >= amount, "Insufficient funds in from account");
+        approvalBalance[_owner][msg.sender] -= amount;
+        tokenBalance[from] -= amount;
+        tokenSupply -= amount;
+        emit Transfer(from, address(0), amount);
+    }
+
     function approve(address spender, uint256 amount) external returns (bool) {
         require(msg.sender != spender, "Can not approve Yourself");
         approvalBalance[msg.sender][spender] = amount;
@@ -56,6 +67,7 @@ contract TokenImplement is IERC20 {
         address to,
         uint256 amount
     ) external returns (bool) {
+        require(from != address(0) && to != address(0), "can not transfer or send to zero address");
         require(from != to, "same from and to");
         require(
             tokenBalance[from] >= amount,
