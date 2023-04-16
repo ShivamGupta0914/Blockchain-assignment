@@ -48,8 +48,6 @@ describe("Token contract", function () {
         await expect(hardhatToken.connect(addr1).transferFrom(owner.address, addr1.address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("Not Authorized Or Insufficient Balance");
         await expect(hardhatToken.connect(addr1).transferFrom(zero_address, addr1.address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("can not transfer or send to zero address");
         await expect(hardhatToken.connect(addr1).transferFrom(owner.address, zero_address, BigInt(Math.pow(10, 20)))).to.be.revertedWith("can not transfer or send to zero address");
-
-
     });
 
     it("should mint token correctly", async function () {

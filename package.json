@@ -4,7 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "console": "npx hardhat console",
+    "help": "npx hardhat help",
+    "checkGas": "REPORT_GAS=true npx hardhat test",
+    "node": "npx hardhat node",
+    "deploy" : "npx hardhat run --network localhost scripts/deploy.js",
+    "deploySepolia" : "npx hardhat run --network sepolia scripts/deploy.js",
+    "deployGoerli": "npx hardhat run --network goerli scripts/deploy.js",
+    "deployMainnet": "npx hardhat run --network mainnet scripts/deploy.js",
+    "clean": "npx hardhat clean"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +27,8 @@
     "ethereum-waffle": "^4.0.10",
     "ethers": "^5.7.2",
     "hardhat": "^2.13.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3"
   }
 }

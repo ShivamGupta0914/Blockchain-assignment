@@ -2,107 +2,184 @@
 pragma solidity 0.8.19;
 import "./IERC20.sol";
 
+
+/**
+ * @dev Implementation of the {IERC20} interface.
+ * which implements the Fungible ERC20 token
+*/
+
 contract TokenImplement is IERC20 {
     uint256 private tokenSupply = 1000 * (10**18);
-    address private _owner;
+    address private owner;
     string private tokenName;
     string private tokenSymbol;
     mapping(address => uint256) private tokenBalance;
     mapping(address => mapping(address => uint256)) private approvalBalance;
 
+    /**
+     * @dev Sets the values for name and symbol of the token.
+     *
+     * All two of these values are immutable: they can only be set once during
+     * construction.
+     * @param _name is the name of token
+     * @param _symbol is the symbol of token
+     */
     constructor(string memory _name, string memory _symbol) {
         tokenName = _name;
         tokenSymbol = _symbol;
-        _owner = msg.sender;
-        tokenBalance[_owner] = tokenSupply;
+        owner = msg.sender;
+        tokenBalance[owner] = tokenSupply;
     }
 
-    function transfer(address to, uint256 amount) external returns (bool) {
-        require(to != address(0), "can not send tokens to zero address");
-        require(tokenBalance[msg.sender] >= amount, "Insufficient amount");
-        tokenBalance[msg.sender] -= amount;
-        tokenBalance[to] += amount;
-        emit Transfer(msg.sender, to, amount);
+    /**
+    * @dev this function sends token from msg.sender address to _to address with amount _amount
+    * emits a transfer event.
+    * @param _to is the address to which token is transferred.
+    * @param _amount is the amount of token to be transferred.
+    * @return boolean value.
+    */
+    function transfer(address _to, uint256 _amount) external returns (bool) {
+        require(_to != address(0), "can not send tokens to zero address");
+        require(tokenBalance[msg.sender] >= _amount, "Insufficient amount");
+        tokenBalance[msg.sender] -= _amount;
+        tokenBalance[_to] += _amount;
+        emit Transfer(msg.sender, _to, _amount);
         return true;
     }
 
-    function mint(address account, uint256 amount) external {
-        require(msg.sender == _owner, "not authorized to mint");
+    /**
+    * @dev this function creates new token and increases total supply, only deployer can do it,
+    * emits a transfer event.
+    * @param _account is the account in which token will be minted.
+    * @param _amount is the amount of tokens to be minted.
+    */
+    function mint(address _account, uint256 _amount) external {
+        require(msg.sender == owner, "not authorized to mint");
         require(
-            account != address(0),
+            _account != address(0),
             "Cannot mint tokens to the zero address"
         );
-        tokenSupply += amount;
-        tokenBalance[account] += amount;
-        emit Transfer(address(0), account, amount);
+        tokenSupply += _amount;
+        tokenBalance[_account] += _amount;
+        emit Transfer(address(0), _account, _amount);
     }
 
-    function burn(address account, uint256 amount) external {
-        require(msg.sender == _owner, "not authorized to burn");
-        require(tokenBalance[account] >= amount, "Not enough balance");
-        tokenBalance[account] -= amount;
-        tokenSupply -= amount;
-        emit Transfer(account, address(0), amount);
+    /**
+    * @dev this function destroys token and decreases total supply, only deployer of token can do it,
+    * emits a transfer event.
+    * @param _account is the account from which token will be destroyed.
+    * @param _amount is the amount of tokens to be burn.
+    */
+    function burn(address _account, uint256 _amount) external {
+        require(msg.sender == owner, "not authorized to burn");
+        require(tokenBalance[_account] >= _amount, "Not enough balance");
+        tokenBalance[_account] -= _amount;
+        tokenSupply -= _amount;
+        emit Transfer(_account, address(0), _amount);
     }
 
-    function burnFrom(address from, uint256 amount) external {
-        require(approvalBalance[_owner][msg.sender] >= amount, "you are not approved or Low Approval Balance");
-        require(from != address(0), "can not burn from zero address");
-        require(tokenBalance[from] >= amount, "Insufficient funds in from account");
-        approvalBalance[_owner][msg.sender] -= amount;
-        tokenBalance[from] -= amount;
-        tokenSupply -= amount;
-        emit Transfer(from, address(0), amount);
+    /**
+    * @dev this function destroys token and decreases total supply, only the account which deployer approved can do it,
+    * emits a transfer event.
+    * @param _from is the account from which token will be destroyed
+    * @param _amount is the amount of tokens to be burn
+    */
+    function burnFrom(address _from, uint256 _amount) external {
+        require(approvalBalance[owner][msg.sender] >= _amount, "you are not approved or Low Approval Balance");
+        require(_from != address(0), "can not burn from zero address");
+        require(tokenBalance[_from] >= _amount, "Insufficient funds in from account");
+        approvalBalance[owner][msg.sender] -= _amount;
+        tokenBalance[_from] -= _amount;
+        tokenSupply -= _amount;
+        emit Transfer(_from, address(0), _amount);
     }
 
-    function approve(address spender, uint256 amount) external returns (bool) {
-        require(msg.sender != spender, "Can not approve Yourself");
-        approvalBalance[msg.sender][spender] = amount;
-        emit Approval(msg.sender, spender, amount);
+    /**
+    * @dev this function approves another account to use their token, msg.sender will call this function,
+    * emits a approve event.
+    * @param _spender is the account which will be approved.
+    * @param _amount is the amount of tokens which will be approved.
+    * @return boolean value.
+    */
+    function approve(address _spender, uint256 _amount) external returns (bool) {
+        require(msg.sender != _spender, "Can not approve Yourself");
+        approvalBalance[msg.sender][_spender] = _amount;
+        emit Approval(msg.sender, _spender, _amount);
         return true;
     }
 
+    /**
+    * @dev this function transfers token from owner account to another acoount, only approved accounts can use this function,
+    * emits a transfer event.
+    * @param _from is the account from which tokens will be transferred.
+    * @param _to is the account to which tokens will be transferred.
+    * @param _amount is the amount of tokens which will be transferred.
+    * @return boolean value.
+    */
     function transferFrom(
-        address from,
-        address to,
-        uint256 amount
+        address _from,
+        address _to,
+        uint256 _amount
     ) external returns (bool) {
-        require(from != address(0) && to != address(0), "can not transfer or send to zero address");
-        require(from != to, "same from and to");
+        require(_from != address(0) && _to != address(0), "can not transfer or send to zero address");
+        require(_from != _to, "same from and to");
         require(
-            tokenBalance[from] >= amount,
+            tokenBalance[_from] >= _amount,
             "from does not have sufficient balance"
         );
         require(
-            approvalBalance[from][msg.sender] >= amount,
+            approvalBalance[_from][msg.sender] >= _amount,
             "Not Authorized Or Insufficient Balance"
         );
-        approvalBalance[from][msg.sender] -= amount;
-        tokenBalance[from] -= amount;
-        tokenBalance[to] += amount;
-        emit Transfer(from, to, amount);
+        approvalBalance[_from][msg.sender] -= _amount;
+        tokenBalance[_from] -= _amount;
+        tokenBalance[_to] += _amount;
+        emit Transfer(_from, _to, _amount);
         return true;
     }
 
+    /**
+    * @dev gives information of total supply of tokens.
+    * @return tokenSuppy i.e. total supply.
+    */
     function totalSupply() external view returns (uint256) {
         return tokenSupply;
     }
 
-    function balanceOf(address account) external view returns (uint256) {
-        return tokenBalance[account];
+    /**
+    * @dev gives information about the number of tokens of an address.
+    * @param _account of which tokens to be find.
+    * @return balance of token in that account.
+    */
+    function balanceOf(address _account) external view returns (uint256) {
+        return tokenBalance[_account];
     }
 
+    /**
+    * @dev gives information about the tokens that are on approved to an account.
+    * @param _owner is the account of owner.
+    * @param _spender is the account which is approved.
+    * @return number of tokens which are approved.
+    */
     function allowance(
-        address owner,
-        address spender
+        address _owner,
+        address _spender
     ) external view returns (uint256) {
-        return approvalBalance[owner][spender];
+        return approvalBalance[_owner][_spender];
     }
 
+    /**
+    * @dev this function is used to get name of token.
+    * @return name of token.
+    */
     function name() external view returns (string memory) {
         return tokenName;
     }
 
+    /**
+    * @dev this function is used to get symbol of token.
+    * @return symbol of token.
+    */
     function symbol() external view returns (string memory) {
         return tokenSymbol;
     }
