@@ -13,8 +13,8 @@ module.exports = {
         accounts: [process.env.NETWORK_PRIVATE_KEY]
       },
       mainnet: {
-        url: `https://eth-goerli.g.alchemy.com/v2/${process.env.MAINNET_API_KEY}`,
+        url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.MAINNET_API_KEY}`,
         accounts: [process.env.NETWORK_PRIVATE_KEY]
       }
-    }   
+    }
 }

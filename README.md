@@ -4,7 +4,7 @@ This is an ERC20 token contract project which implements the ERC20 interface, yo
 
 Try running some of the following tasks:
 
-## To compile use command:
+## To compile files use command:
 ```shell
 npm run compile
 ```
